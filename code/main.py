@@ -47,6 +47,8 @@ def run(requests_path: Path, out_path: Path) -> list[dict]:
         for t in changed[:20]:
             print(f"  LLM={llm_labels[t][0]} keyword={intent.classify_text(t)[0]}: {t[:100]!r}", file=sys.stderr)
 
+    not_applicable_cases: list[tuple[str, str, str]] = []
+
     for req in requests:
         case_id = req["case_id"]
         email = req["email"]
@@ -62,10 +64,11 @@ def run(requests_path: Path, out_path: Path) -> list[dict]:
         candidate_resource_ids = {o["resource_id"] for o in candidates}
         account_override = bool(classify_overrides & candidate_resource_ids)
 
-        decision, _reason = intent.classify_case(request_text, account_override, llm_labels)
+        decision, reason = intent.classify_case(request_text, account_override, llm_labels)
 
-        if decision == "NON_DELETION":
+        if decision not in intent.DELETION_LABELS:
             rows_out.append({"case_id": case_id, "deletion_status": "NOT_APPLICABLE", "steps_json": "[]"})
+            not_applicable_cases.append((case_id, request_text, reason))
             continue
 
         linked = resource_link_overlay(all_obs, idset)
@@ -106,6 +109,17 @@ def run(requests_path: Path, out_path: Path) -> list[dict]:
 
     if unresolved_accounts:
         print(f"WARNING: {len(unresolved_accounts)} case(s) have no resolvable account_service id: {unresolved_accounts[:10]}", file=sys.stderr)
+
+    if not_applicable_cases:
+        print(f"NOT_APPLICABLE: {len(not_applicable_cases)} case(s)", file=sys.stderr)
+        for cid, text, reason in not_applicable_cases:
+            print(f"  {cid}: {reason} | text={text[:120]!r}", file=sys.stderr)
+
+    if requests_path == SAMPLE_REQUESTS_CSV and not_applicable_cases:
+        raise SystemExit(
+            f"GATE FAILED: sample split produced {len(not_applicable_cases)} NOT_APPLICABLE case(s) "
+            f"but dataset/sample_output.csv has 0. See the NOT_APPLICABLE cases printed above."
+        )
 
     return rows_out
 

@@ -34,8 +34,11 @@ LLM_LEDGER_JSONL = BUILD_DIR / "llm_ledger.jsonl"
 OUTPUT_CSV = REPO_ROOT / "output.csv"
 
 # Runtime model for the few LLM-backed steps (intent classification, image
-# parsing, rare adjudication). See docs/SPEC.md section 5.
-GEMINI_MODEL = "gemini-flash-latest"
+# parsing, rare adjudication). Flash-Lite with thinking off: fastest current
+# Gemini model, used because intent/image classification here are simple
+# single-pass labeling tasks that don't need extended reasoning. See
+# docs/SPEC.md section 5.
+GEMINI_MODEL = "gemini-flash-lite-latest"
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 EXPECTED_FULL_ROWS = 518

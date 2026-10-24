@@ -65,7 +65,10 @@ def call(prompt: str, *, system: str | None = None, image_bytes: bytes | None = 
     if image_bytes is not None:
         contents.append(types.Part.from_bytes(data=image_bytes, mime_type="image/png"))
 
-    cfg = types.GenerateContentConfig(system_instruction=system or None) if system else None
+    # gemini-flash-lite-latest rejects thinking_budget=0 with a 400 (verified
+    # against the live API); it runs without extended thinking by default, so
+    # omitting thinking_config already gives the "thinking off" behavior we want.
+    cfg = types.GenerateContentConfig(system_instruction=system or None)
 
     last_err: Exception | None = None
     for attempt in range(max_retries):
