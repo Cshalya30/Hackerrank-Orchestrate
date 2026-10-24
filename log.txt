@@ -890,3 +890,32 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+## [2026-10-25T13:35:00+05:30] Visualizer: premium flow canvas (owner wanted n8n back, with motion)
+
+Agent Response Summary:
+Owner rejected the Stripe dashboard too -- the node-flow canvas was the part they actually liked, and they wanted premium motion graphics and a maximalist touch, not a restrained dashboard. Loaded the motion-design skill (Premium personality: 350-600ms, cubic-bezier(.4,0,.2,1), 0% overshoot, three motion layers) and rebuilt tools/viz/index.html as a dark, maximalist flow canvas: a fixed aurora-mesh background (three slow-drifting color blooms, ambient layer), a bold stat marquee in Bricolage Grotesque with gradient-accented glass tiles, and the pannable/zoomable node canvas back, now with gradient edges carrying continuously animated comet particles (SVG animateMotion) and a "Trace case" button that lights up a case's full node path in sequence with a kind-colored glow pulse per node (primary + secondary layers; ambient mesh underneath).
+
+Caught a real CSS bug before shipping, not just a visual check: `.node`'s base rule set `opacity:0` directly and relied on the `nodeIn` entrance animation's `forwards` fill to hold it visible. When `.node.lit` later reassigned the `animation` shorthand to `litPulse` (during a case trace), it fully replaced `nodeIn` -- including its forwards-held end state -- so the element fell back to the base rule's own `opacity:0` and the node visually vanished after being traced. Caught this by checking computed opacity via Playwright after firing the trace, not from a screenshot alone (a static screenshot taken before the swap would have looked fine). Fixed by moving the entrance opacity/transform/animation into a one-shot `.entering` class that JS removes on `animationend`, so the base `.node` rule has no opacity override for any later animation swap to strip away. Also fixed a second instance of the exact truncation bug from the first redesign (`.slice(0,4)` on status labels producing "10 not_" again) -- replaced with real labels.
+
+Verified with Playwright at 1440px and 1024px: 0 console errors, node opacity confirmed stays at 1 through a full trace sequence (previously regressed to 0), 8 comet particles confirmed animating, by_source panel confirmed clean (carrying forward the earlier export_stats.py fix). Updated code/README.md and submission/INTERVIEW_PREP.md to describe the canvas again, rebuilt submission/code.zip.
+
+Key decision and why: treated "maximalist" as license for a richer visual system (multi-hue kind-color accents, gradient edges, bold display type, glow) without abandoning the Premium motion personality's restraint on timing/easing -- richness in what's shown, discipline in how it moves, per the skill's explicit warning that scattered uncoordinated effects read as cheap, not premium.
+
+Files changed: tools/viz/index.html (full rewrite, premium canvas + bug fix), code/README.md, submission/INTERVIEW_PREP.md, submission/code.zip (rebuilt).
+
+Commands run: python -m http.server 8768 -d tools/viz (Playwright verification at 1440px/1024px, node-opacity-after-trace check, comet-count check, by_source panel check); tools/make_zip.py (secret scan clean, 32 files).
+
+Actions:
+* Rebuilt tools/viz/index.html as a dark maximalist flow canvas with Premium-personality motion (aurora mesh, gradient-comet edges, orchestrated node entrance, case-trace light sequence)
+* Found and fixed a real CSS animation-swap bug that made traced nodes disappear
+* Fixed a repeat of the status-label truncation bug
+* Updated README/INTERVIEW_PREP, rebuilt submission/code.zip
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none

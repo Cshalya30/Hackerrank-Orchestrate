@@ -96,13 +96,14 @@ python -m http.server 8765 -d tools/viz
 # open http://localhost:8765
 ```
 
-A single self-contained page (no build step, Google Fonts aside): a KPI row
-(status/step/sequence accuracy, LLM cost), a status-distribution bar, a
-9-stage pipeline stepper (click a stage for its file/function, counts, and
-— for the intent stage — LLM usage), and a searchable, filterable, paginated
-table of all 518 cases that opens a detail drawer (identity, account rule,
-resources, step timeline) on click. Regenerate `tools/viz/pipeline.json`
-after any pipeline change with:
+A single self-contained page (no build step, Google Fonts aside): a bold
+stat marquee (status/step/sequence accuracy, LLM cost, case-status mix),
+then a pannable/zoomable node canvas of the 9 pipeline stages connected by
+glowing gradient edges with animated data particles (click a node for its
+file/function, counts, and — for the intent node — LLM usage). Pick a case
+and hit **Trace case** to watch a single case light up every node it
+touches, in order, with its full identity/resource/step detail in the side
+panel. Regenerate `tools/viz/pipeline.json` after any pipeline change with:
 
 ```bash
 python tools/viz/export_stats.py
