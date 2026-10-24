@@ -45,3 +45,9 @@ Each entry: decision, alternatives rejected, evidence.
 - **Attempted:** skip activity-claim-only links to resources outside the 15 deletion_rules.csv categories (object_storage, etc.), since README.md explicitly warns global data contains decoys, and case_07's object_19 (linked only by one LINK_RESOURCE_IDENTITY claim) was a confirmed false positive.
 - **Reverted:** fixed case_07's false positive but flipped 0 cases toward correct and relied on a different coincidence elsewhere; net effect was status accuracy 0.812 -> 0.781 with F1 unchanged (0.694 -> 0.694). Per the owner's rule (keep only if F1 improves), reverted.
 - **Evidence:** docs/EVAL_LOG.md run comparison. Worth revisiting once PDF/image parsing closes the support_001/evidence_58 gap that was masking the real fix.
+
+## D8. Reverted: merging screenshot (image_parser.py) observations into the main pipeline
+
+- **Attempted:** ran `code/ingest/image_parser.py` against all 11 screenshots (Gemini Flash-Lite vision, cached); all 11 parsed cleanly into 34 valid observations, appended to `build/observations.jsonl`.
+- **Reverted:** sample step F1 dropped 0.706 -> 0.695 (precision 0.807 -> 0.781, recall unchanged at 0.627). Some vision-extracted rows appear to outrank or shadow a correct file-evidence state for the same resource under the point-in-time / PRESENT-beats-ABSENT tie rule, rather than adding new coverage cleanly.
+- **Evidence:** docs/EVAL_LOG.md run comparison. `code/ingest/image_parser.py` is kept as a working, cache-backed standalone script (not called from `code/ingest/build.py`, so the committed pipeline never merges its output) for a future session to isolate which resource_id(s) it conflicts with before re-attempting.
