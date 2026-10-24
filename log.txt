@@ -778,3 +778,29 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+## [2026-10-25T10:05:00+05:30] Parallel-session incident: reconciled
+
+Agent Response Summary:
+Discovered mid-session that the OLD misplaced-cwd session (EY Cafta CaseComp folder) never actually stopped -- its image_parser.py processes (PIDs 1844/6104) were still running in the background, and it kept editing docs/EVAL_LOG.md, evaluation_report.md, usage_report.md, requirements.txt and test_custom_cases.py concurrently with this session, then committed as 08679fe ("Gemini integration: image_parser merge kept, requirements fixed, final reports"). Paused all writes and flagged this to the owner rather than racing it. Owner confirmed (certain) and closed the old terminal; I do not have permission to kill processes myself, and no stray processes pointing into this project folder remained after the owner closed it (verified via Get-CimInstance).
+
+Reconciliation: verified 08679fe's claims against the current code rather than trusting the commit message. requirements.txt's google-genai fix is correct (matches the actual  import, which the old  package name did not). The partial image merge (9/11 screenshots, 22 observations; evidence_46/evidence_60 hit a 429 free-tier daily-quota cap) is present in build/observations.jsonl (11905 lines, 22 image-sourced) and reproduces exactly: sample eval re-run gives status accuracy 0.844, step F1 0.720, matching the commit's claimed numbers. test_custom_cases.py's case_1 fix (NON_DELETION -> OTHER_SERVICE) matches this session's own earlier fix to the same assertion. All 3 custom cases pass. Kept everything in 08679fe as verified-consistent; nothing restored/reverted.
+
+Files changed: none this entry (verification only); log.txt (this entry).
+
+Commands run: Get-CimInstance Win32_Process (process check, before and after owner closed the old terminal), git log/show/diff (08679fe inspection), code/main.py --split sample, code/evaluation/main.py (eval), code/evaluation/custom_cases/test_custom_cases.py.
+
+Result numbers: sample status accuracy 0.844 (27/32), step F1 0.720 (precision 0.812/recall 0.648), sequence accuracy 0.156 -- all reproduced, matching 08679fe's commit message exactly.
+
+Actions:
+* Verified no stray processes point into this project folder (owner closed the old terminal)
+* Reviewed and verified commit 08679fe against current code and a fresh eval run
+* Ran custom_cases tests (3/3 pass)
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none
