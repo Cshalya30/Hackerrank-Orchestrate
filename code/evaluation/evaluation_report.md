@@ -1,7 +1,7 @@
 # Evaluation Report — Ghost Data Audit Agent
 
 Status at this snapshot: **Phase-0 autonomous build, two runs plus a Gemini-backed
-intent/vision pass.** This report states real, reproducible numbers from the
+intent pass.** This report states real, reproducible numbers from the
 current codebase — nothing here is invented. See `docs/CONTEXT.md` for the
 full handoff, `docs/EVAL_LOG.md` for every eval run (kept and reverted), and
 `docs/DECISIONS.md` for the reasoning behind each kept/reverted change.
@@ -27,37 +27,39 @@ Measured against the 32 public samples (`dataset/sample_output.csv`):
 
 | Metric | Value |
 |---|---|
-| Status accuracy | **0.844** (27/32) |
+| Status accuracy | **0.812** (26/32) |
 | Sequence accuracy (exact ordered step-list match, status included) | **0.156** (5/32) |
 
 ## 2. Step-level and field-level accuracy
 
 | Metric | Value |
 |---|---|
-| Step precision (multiset match on system_id/resource_id/operation/state/evidence_id, step_no ignored) | 0.812 |
-| Step recall | 0.648 |
-| Step F1 | **0.720** |
+| Step precision (multiset match on system_id/resource_id/operation/state/evidence_id, step_no ignored) | 0.807 |
+| Step recall | 0.627 |
+| Step F1 | **0.706** |
 | Field accuracy — step_no | 1.000 |
-| Field accuracy — phase | 0.826 |
-| Field accuracy — system_id | 0.591 |
-| Field accuracy — resource_id | 0.550 |
-| Field accuracy — operation | 0.570 |
-| Field accuracy — state | 0.624 |
-| Field accuracy — evidence_id | 0.886 |
+| Field accuracy — phase | 0.815 |
+| Field accuracy — system_id | 0.582 |
+| Field accuracy — resource_id | 0.541 |
+| Field accuracy — operation | 0.562 |
+| Field accuracy — state | 0.616 |
+| Field accuracy — evidence_id | 0.884 |
 
 Reading these together: precision and recall both improved substantially over
-the first build (0.880/0.378/0.529 -> 0.812/0.648/0.720) once account/audit
-resolution, category-aware log states, historical-identifier matching, and
-(this session) 9/11 screenshot observations were added (see section 4).
-Precision dipped slightly from the very first build (0.880 -> 0.812) as a
-side effect of resolving more resources overall — a few of the newly-resolved
-account/audit records are structurally right but not exactly what the gold
-step expects (see section 5).
+the first build (0.880/0.378/0.529 -> 0.807/0.627/0.706) once account/audit
+resolution, category-aware log states, and historical-identifier matching
+were added (see section 4). Precision dipped slightly from the very first
+build (0.880 -> 0.807) as a side effect of resolving more resources overall
+— a few of the newly-resolved account/audit records are structurally right
+but not exactly what the gold step expects (see section 5).
+
+A screenshot (vision-LLM) merge was tried twice this session and reverted
+both times — see item 9 below and `docs/DECISIONS.md` D8/D9/D10 — because
+its effect on these numbers was not reproducible across separate runs.
 
 ## 3. Sequence accuracy
 
-0.156 (5/32 cases produce the exact ordered step list), unchanged from the
-previous session's build and up from 0.062 in the
+0.156 (5/32 cases produce the exact ordered step list), up from 0.062 in the
 first build. Most remaining misses are partial: the status is right and most
 steps match, but one or two resources (commonly: a PDF/PNG-only account, or a
 SUPPORT_ATTACHMENT/SUPPORT_MESSAGE misclassification) are still missing or
@@ -76,12 +78,12 @@ close.
 | 6 | Log/activity sources defaulted to a generic `PRESENT` the planner silently treated as compliant; old email-hash-only matches were missed | case_12 (`analytics_9914` matched only via an old `email_hash` in a log's `correlation_key`) | category-aware default states (FLOW_ENABLED/RESTORE_ALLOWED/IDENTIFIABLE, not generic PRESENT); `matches_identity()` also checks `email_hash`/`email` sets | status 0.750 -> 0.812, step F1 0.646 -> 0.694 |
 | 7 | `support_001`/`audit_record` evidence only existed in a PDF, which wasn't parsed | case_07 | wired `pdf_parser` for the two specific PDFs needed | step F1 0.694 -> 0.706 |
 | 8 | Intent classification was binary (DELETION/NON_DELETION) and relied on a hand-maintained keyword list; "please verify my deletion completed" follow-ups were indistinguishable from ambiguous defaults | advisor review predicting 10-15 real NOT_APPLICABLE cases vs. 6 found by the keyword fallback | 3-label scheme (DELETE_REQUEST/DELETION_VERIFICATION/OTHER_SERVICE) on Gemini Flash-Lite (thinking off), batched/cached; only OTHER_SERVICE -> NOT_APPLICABLE; CLASSIFY_REQUEST override still forces OTHER_SERVICE | full run NOT_APPLICABLE count 6 -> **10**, all driven by the CLASSIFY_REQUEST override (matches the advisor's 10-15 prediction); sample eval unchanged (0.812/0.706, sample has 0 NOT_APPLICABLE cases) |
-| 9 | Screenshot (PNG) evidence was never parsed, so a handful of accounts/records only ever shown in an admin-console screenshot stayed unresolved | 11 `.png` evidence files in `dataset/evidence/` with no CSV/JSON/log counterpart | re-ran `code/ingest/image_parser.py` (Gemini vision, new `google-genai` SDK) and merged its output into `build/observations.jsonl`; 9/11 screenshots parsed (22 observations), 2 hit the Gemini free-tier's 20-requests/day quota (429, not a parsing bug) | status 0.812 -> **0.844**, step F1 0.706 -> **0.720** — unlike the earlier same-session attempt at 34/34 observations (which regressed F1 to 0.695 and was reverted, see `docs/DECISIONS.md` D8), this smaller merge net-improved and was kept |
+| 9 | Screenshot (PNG) evidence parsing was tried twice (all 11, then a 9/11 subset) and reverted both times | 11 `.png` evidence files in `dataset/evidence/` with no CSV/JSON/log counterpart; `code/ingest/image_parser.py` (Gemini vision) parses them cleanly, but the first full-11 merge regressed F1 0.706->0.695 (D8), and a second attempt that happened to exclude 2 files (quota-limited) measured 0.812/0.844 status, 0.706/0.720 F1 (D9) — then a Phase-2 re-check found this did NOT reproduce: re-running with the same 2 files hardcoded-excluded gave 0.695 again, because the vision model's row extraction is not perfectly deterministic across calls (D10) | not kept — final pipeline has no image merge; numbers above (0.812/0.706) are the real, reproducible state |
 
 ## 5. Remaining known gaps (not yet fixed — see `docs/GAPS.md` and `docs/CONTEXT.md`)
 
-- **2 of 11 screenshots are still unparsed** (`evidence_46`, `evidence_60`) — not a bug, the Gemini free-tier key hit its 20-requests/day cap mid-run. Re-running `code/ingest/image_parser.py` once the quota resets (or on a paid key) will pick up the remaining 2 without reprocessing the other 9 (disk-cached by prompt+image hash).
-- **7 accounts and 3 audit records have zero evidence anywhere** in the parsed corpus (`build/coverage.txt`), even after account_linker's batch-matching, zero-padded fallback, and the image pass — these may only be resolvable via the 2 still-unparsed screenshots, or they may be intentionally unreachable (as `audit_record_6645` for case_18 is confirmed to be).
+- **Screenshot (PNG) evidence is not merged into the pipeline**, despite `code/ingest/image_parser.py` working and being able to parse all 11 cleanly. Both attempts to use it regressed or failed to reproduce a gain (`docs/DECISIONS.md` D8/D9/D10) — the vision model's per-call row extraction is not fully deterministic, so its net effect on sample F1 could not be trusted across repeated runs. A future session with more time budget should diff extraction output across several repeated calls on the same image before re-attempting a merge.
+- **7 accounts and 3 audit records have zero evidence anywhere** in the parsed corpus (`build/coverage.txt`), even after account_linker's batch-matching and zero-padded fallback — these may only be resolvable via screenshots, which aren't merged (see above), or they may be intentionally unreachable (as `audit_record_6645` for case_18 is confirmed to be).
 - **SUPPORT_ATTACHMENT vs. SUPPORT_MESSAGE is still not fully reliable** beyond the two PDF-backed cases wired in RUN2 — the general heuristic still defaults by table/collection name for everything else.
 - **The deterministic intent fallback remains a stopgap** for when `GEMINI_API_KEY` is absent; it won't generalize to unseen non-deletion or verification phrasing the way the LLM path does.
 
