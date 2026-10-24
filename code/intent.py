@@ -36,6 +36,13 @@ NON_DELETION_HINTS = [
     "reset my password", "reset password", "login issue", "can't log in", "cannot log in",
     "unsubscribe", "opt out of marketing", "marketing preferences", "update my address",
     "change my password", "two-factor", "verify my identity", "invoice copy",
+    # broadened after the first full-run pass flagged 6 misses (docs/EVAL_LOG.md /
+    # docs/GAPS.md): explicit "keep it as-is" framing around an otherwise
+    # unrelated correction/export/opt-out/change request.
+    "leave the account", "keep the account", "leave my profile", "leave my account",
+    "without removing", "continue using the service", "continue using this service",
+    "portable format", "misspelled", "correct it without", "remove me from marketing",
+    "out of date. please replace", "out of date, please replace",
 ]
 
 

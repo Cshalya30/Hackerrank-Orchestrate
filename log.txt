@@ -159,3 +159,31 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+## [2026-10-24T22:05:00+05:30] Step 6-7: intent.py fallback fix, full run on 518 cases, validated
+
+Agent Response Summary:
+Card 5 (intent.py) was already functionally complete as part of Card 4's main.py wiring: no GEMINI_API_KEY is set, so the deterministic multilingual-keyword fallback plus CLASSIFY_REQUEST override runs (image_parser.py for the 11 screenshots is still blocked on the key, as logged in docs/GAPS.md and docs/CONTEXT.md). Ran the fallback over the full 518 requests before touching output: got 512 DELETION / 6 "defaulted to deletion, no signal" / 0 confident NON_DELETION — suspicious, since the problem statement's own non-deletion examples (phone update, data export, name correction, marketing opt-out, invoice copy, email change) should appear somewhere in 518 cases. Inspected the 6 "defaulted" texts directly (case_533/535/537/538/540/541) and all six were unambiguous non-deletion requests using phrasing my NON_DELETION_HINTS list didn't cover ("leave the account active", "keep the account as it is", "without removing any of my records", "I still want receipts", "leave my profile and purchase history in place", "I want to continue using the service"). Broadened NON_DELETION_HINTS with these patterns; re-ran -> 512 DELETION / 6 NON_DELETION (exactly those six cases), 0 ambiguous defaults left. Re-ran the sample eval to confirm no regression (sample set has 0 NOT_APPLICABLE cases so this fix is full-run-only) -> unchanged at 0.750/0.529/0.062.
+
+Ran the full pipeline: `python code/main.py --split full --out output.csv` -> 518 rows, distribution COMPLETE=304, INCOMPLETE=208, NOT_APPLICABLE=6. Ran `python code/validate.py output.csv --expect-rows 518 --case-ids dataset/deletion_requests.csv` -> VALIDATION PASSED (row count, sort order, case_id completeness, steps_json structure/ordering/evidence-citation rules all satisfied).
+
+Key decision and why: did not attempt a full LLM-backed intent classification run since GEMINI_API_KEY still isn't configured by the owner; the deterministic fallback's remaining known weakness (it can only catch non-deletion phrasing patterns it's been shown, unlike an LLM) is logged honestly in docs/GAPS.md rather than claimed as solved.
+
+Files changed: code/intent.py (broadened NON_DELETION_HINTS), output.csv (generated at repo root, gitignored).
+
+Commands run: `.venv/Scripts/python code/main.py --split full --out output.csv` (x2, before/after the intent fix); `.venv/Scripts/python code/validate.py output.csv --expect-rows 518 --case-ids dataset/deletion_requests.csv`; `.venv/Scripts/python code/main.py --split sample ...` + eval (regression check).
+
+Result numbers: full run status distribution COMPLETE=304 (58.7%), INCOMPLETE=208 (40.2%), NOT_APPLICABLE=6 (1.2%). validate.py: 0 errors, 518/518 rows. Sample eval unchanged: status accuracy 0.750, step F1 0.529, sequence accuracy 0.062.
+
+Actions:
+* Edited code/intent.py (NON_DELETION_HINTS)
+* Ran full pipeline twice, validate.py, and a sample-eval regression check
+* Generated output.csv at repo root (518 rows, gitignored per .gitignore)
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none
