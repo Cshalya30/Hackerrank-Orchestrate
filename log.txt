@@ -187,3 +187,29 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+## [2026-10-24T22:25:00+05:30] Step 8: custom cases, evaluation_report, usage_report, CONTEXT handoff — stopping here
+
+Agent Response Summary:
+Card 7 (final): wrote code/evaluation/custom_cases/test_custom_cases.py with 3 synthetic cases per the owner's required set (NOT_APPLICABLE despite surface-level deletion-adjacent wording; a resource matched only via a user's historical/old email_hash; a resource resurrected by a later successful activity claim after file evidence proved it ABSENT) — all 3 pass, run standalone with `python code/evaluation/custom_cases/test_custom_cases.py`, no pytest dependency. Wrote code/evaluation/evaluation_report.md with the real sample-eval numbers (status accuracy 0.750, step F1 0.529, sequence accuracy 0.062, full field-accuracy table), a reproduction command block, a table of the 4 concrete failure->fix pairs found and fixed this session (eval.py's field-accuracy divisor bug; the NOT_APPLICABLE-from-empty-steps bug; the 82%->90.1% coverage fix; the 6-case intent-hint fix), and an honest "remaining known gaps" section (PDF/PNG unparsed, SUPPORT_ATTACHMENT/MESSAGE ambiguity, zero-evidence accounts, deterministic-fallback ceiling) instead of overstating results. Wrote code/evaluation/usage_report.md stating 0 LLM calls / $0.00 with the reasoning (no GEMINI_API_KEY, confirmed by the absence of build/llm_ledger.jsonl, not an omission) and what the report will look like once a key is supplied. Rewrote docs/CONTEXT.md's handoff summary and status checklist to reflect the actual finished state (Cards 0-4 fully done, Cards 5-7 partially done with explicit named gaps, nothing silently skipped) and a concrete prioritized next-actions list. Appended a new docs/GAPS.md entry on the SUPPORT_ATTACHMENT/SUPPORT_MESSAGE ambiguity found via case_07's eval diff, and confirmed (not yet wired in) that pypdf cleanly extracts the account_history_report PDF.
+
+Key decision and why: stopping the autonomous run here (end of the owner's planned 8 steps) rather than attempting more fix loops — the owner's rule was "up to 3 fix loops, keep only what helps" for Card 4, and I used 1 there (NOT_APPLICABLE bug) plus 1 more on Card 5/6 (intent hints); both were net positive and are logged. Further fixes (PDF/image parsing, support-record disambiguation) are real, identified, non-trivial engineering tasks that deserve a fresh session with the owner present to confirm a GEMINI_API_KEY and review the SUPPORT_ATTACHMENT heuristic, not something to rush in the time remaining.
+
+Files changed: code/evaluation/custom_cases/test_custom_cases.py (new), code/evaluation/evaluation_report.md (new), code/evaluation/usage_report.md (new), docs/CONTEXT.md (rewritten), docs/GAPS.md (appended).
+
+Commands run: `.venv/Scripts/python code/evaluation/custom_cases/test_custom_cases.py` (3/3 pass); re-read of build/ contents to confirm no llm_ledger.jsonl exists (0 calls, not an omission).
+
+Result numbers (final snapshot): sample eval status accuracy 0.750, step F1 0.529 (precision 0.880/recall 0.378), sequence accuracy 0.062; full run 518/518 valid rows, distribution COMPLETE=304/INCOMPLETE=208/NOT_APPLICABLE=6; coverage 90.1%; 3/3 custom cases passing; 0 LLM calls, $0.00 cost.
+
+Actions:
+* Wrote code/evaluation/custom_cases/test_custom_cases.py, code/evaluation/evaluation_report.md, code/evaluation/usage_report.md
+* Rewrote docs/CONTEXT.md, appended docs/GAPS.md items 7-8
+* Ran the custom-cases test file; verified no LLM ledger exists
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none

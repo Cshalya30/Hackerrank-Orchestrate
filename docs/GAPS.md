@@ -39,3 +39,11 @@ Verified by `wc -l` / `head` (no full Read of large files):
 
 - Whether `dataset/evidence/records` (29 files, text/JSON handover documents) uses one consistent schema family or several — profiler (Card 2) will confirm; SPEC's `json_parser.py` already anticipates "one function per JSON schema family."
 - `generator/validate_samples.py` / `validate_dataset.py` mentioned in AGENTS.md section 7 are organizer-only dataset-maintenance scripts, not present in this participant repo and not needed for the solution — confirmed out of scope, not a gap.
+
+## 7. Found during Card 3/4/7: support record type ambiguity (not yet resolved)
+
+- `support_records` SQL rows and the `ticket_attachments`/`support_conversations` customer_data collections all use the same `support_` resource_id prefix with no explicit field distinguishing SUPPORT_ATTACHMENT (owned only by subject, rule_06 -> DELETE) from SUPPORT_MESSAGE (shared context, rule_05 -> REDACT). Current code defaults by source table/collection name only. Sample `case_07` (support_001) expects DELETE/ABSENT treatment that our SUPPORT_MESSAGE-default heuristic gets wrong. Needs either message_excerpt NLP (multi-party language detection) or a yet-undiscovered structural signal — flagged for the next session, not fixed.
+
+## 8. PDF content confirmed readable with pypdf (not wired into the pipeline)
+
+- Verified `account_history_report_20260718.pdf` extracts cleanly via `pypdf.PdfReader` (2 pages, 721 chars, readable key:value structure) — it is a per-order customer statement (a `retained_order_records`-style document for a DIFFERENT sample user, not evidence for account presence/absence). The other 3 PDFs (`delivery_correction_attachment.pdf`, `legal_retention_register_20260529.pdf`, `security_retention_extract.pdf`) were not yet inspected this session. pypdf extraction itself is confirmed working; a `pdf_parser.py` just hasn't been written yet (time budget).
