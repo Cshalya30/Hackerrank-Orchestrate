@@ -21,3 +21,15 @@ Each entry: decision, alternatives rejected, evidence.
 - **Evidence:** sample case 05 / evidence_54 (SPEC.md section 2 table row "Replica drift").
 
 (Further entries added as Card 4+ fix loops run — see docs/EVAL_LOG.md for the scores each decision produced.)
+
+## D4. One consolidated code/ingest/build.py, not five separate parser modules
+
+- **Decision:** SQL/JSON/log/text parsing logic lives in one file (shared `_obs()` builder, shared `FamilyTracker`).
+- **Alternatives rejected:** SPEC.md section 4's sql_parser.py/json_parser.py/log_parser.py/text_parser.py/pdf_parser.py/image_parser.py split.
+- **Evidence:** time budget; the split files would share nearly all helper logic. PDF/image parsing still deferred (see docs/GAPS.md).
+
+## D5. system_activity.csv is a required ingest source, not just an overlay
+
+- **Decision:** parse system_activity.csv into observations (DELETE/ANONYMIZE/REDACT/DISABLE_DATA_FLOW/BLOCK_RESTORE/SYNC/INDEX results, LINK_RESOURCE_IDENTITY identity edges, RESTORE_BACKUP's downstream-resource resurrection), tagged `attrs.claim=true`.
+- **Alternatives rejected:** treating it purely as a post-hoc "activity overlay" on top of file-evidence-only observations, as SPEC.md section 4 architecture implied by listing it outside ingest/.
+- **Evidence:** first ingest run hit only 82.0% coverage with every miss being an account_service row; checking sample cases showed account_id numeric suffixes do NOT generally match user_id suffixes (e.g. user_43 -> account_7566), so these accounts are only discoverable through system_activity.csv's LINK_RESOURCE_IDENTITY rows or DELETE_RECORD claims. Added system_activity.csv parsing -> coverage rose to 90.1%.

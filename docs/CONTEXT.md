@@ -27,8 +27,8 @@ Last updated: 2026-10-24T20:40+05:30, by Claude Code (Sonnet 5), autonomous sess
 - [x] docs/SPEC.md (verbatim + README-deviation note), docs/GAPS.md, docs/DECISIONS.md, docs/EVAL_LOG.md created
 - [x] Card 0: code/config.py, code/llm.py (cache+ledger+retries), .env.example, .gitignore, requirements.txt, venv created, deps installed
 - [x] Card 1: code/evaluation/main.py (eval) + code/validate.py — proved 100% on sample_output vs itself
-- [ ] Card 2: tools/profile_evidence.py -> build/evidence_profile.txt
-- [ ] Card 3: ingest parsers -> build/observations.jsonl + build/coverage.txt
+- [x] Card 2: tools/profile_evidence.py -> build/evidence_profile.txt (all 94 files profiled)
+- [x] Card 3: code/ingest/build.py -> build/observations.jsonl (11881 obs), coverage 90.1% vs sample_output.csv
 - [ ] Card 4: identity.py, state.py, policy.py, planner.py -> sample run -> eval
 - [ ] Card 5: intent.py + image_parser.py
 - [ ] Card 6: full run -> output.csv, validate, usage_report, zip script
