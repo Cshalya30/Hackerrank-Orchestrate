@@ -5,6 +5,12 @@ import os
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv(REPO_ROOT / ".env")
+except ImportError:
+    pass
 DATASET_DIR = REPO_ROOT / "dataset"
 EVIDENCE_DIR = DATASET_DIR / "evidence"
 BUILD_DIR = REPO_ROOT / "build"

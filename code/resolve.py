@@ -98,7 +98,21 @@ def matches_identity(obs: dict, idset: dict) -> bool:
 
 
 def candidate_observations(all_obs: list[dict], idset: dict) -> list[dict]:
-    return [o for o in all_obs if matches_identity(o, idset)]
+    """PII/user_id matches, PLUS resource continuity: once a (system_id,
+    resource_id) is linked by any observation's identifiers, every other
+    observation of that SAME resource is included too — even one that has
+    since lost its PII (e.g. an already-ANONYMIZED analytics record has no
+    email left to match on, but it is still the same resource)."""
+    direct = [o for o in all_obs if matches_identity(o, idset)]
+    linked_keys = {(o["system_id"], o["resource_id"]) for o in direct}
+    if not linked_keys:
+        return direct
+    direct_ids = {id(o) for o in direct}
+    continuity = [
+        o for o in all_obs
+        if id(o) not in direct_ids and (o["system_id"], o["resource_id"]) in linked_keys
+    ]
+    return direct + continuity
 
 
 def _priority_key(o: dict) -> tuple:

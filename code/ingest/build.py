@@ -226,16 +226,30 @@ def parse_json(file_id: str, path: Path, captured_at: str, tracker: FamilyTracke
                     if not rid:
                         continue
                     profile = entry.get("profile", {}) if isinstance(entry.get("profile"), dict) else {}
+                    # search_service.index_queries nests the matched identity under hits.documents[0]
+                    doc = {}
+                    hits = entry.get("hits")
+                    if isinstance(hits, dict):
+                        docs = hits.get("documents") or []
+                        if docs and isinstance(docs[0], dict):
+                            doc = docs[0]
                     pii = _pii(
-                        email=_clean(entry.get("email") or entry.get("owner_email") or entry.get("customer_email") or profile.get("email")),
-                        name=_clean(entry.get("full_name") or profile.get("full_name")),
-                        phone=_clean(entry.get("phone") or entry.get("owner_phone") or profile.get("phone")),
-                        email_hash=_clean(entry.get("email_hash") or profile.get("email_hash")),
+                        email=_clean(entry.get("email") or entry.get("owner_email") or entry.get("customer_email")
+                                      or entry.get("requester_email") or profile.get("email") or doc.get("email")),
+                        name=_clean(entry.get("full_name") or entry.get("requester_name") or profile.get("full_name") or doc.get("display_name")),
+                        phone=_clean(entry.get("phone") or entry.get("owner_phone") or entry.get("requester_phone") or profile.get("phone") or doc.get("phone")),
+                        email_hash=_clean(entry.get("email_hash") or profile.get("email_hash") or doc.get("email_hash")),
                     )
-                    user_refs = [_clean(entry.get("customer_reference") or profile.get("customer_reference"))]
+                    user_refs = [_clean(
+                        entry.get("customer_reference") or entry.get("subject_reference")
+                        or profile.get("customer_reference") or doc.get("customer_reference")
+                    )]
                     entry_time = entry.get("observed_at", captured_at)
+                    status_code = entry.get("status_code")
                     present_state = None
-                    if "restore_allowed" in entry:
+                    if status_code is not None and int(status_code) >= 400:
+                        present_state = "ABSENT"
+                    elif "restore_allowed" in entry:
                         present_state = "RESTORE_ALLOWED" if entry.get("restore_allowed") else "RESTORE_BLOCKED"
                     elif "enabled" in entry:
                         present_state = "FLOW_ENABLED" if entry.get("enabled") else "FLOW_DISABLED"
@@ -243,8 +257,8 @@ def parse_json(file_id: str, path: Path, captured_at: str, tracker: FamilyTracke
                         present_state = "IDENTIFIABLE" if any(pii.values()) else "ANONYMIZED"
                     attrs = {"list_key": list_key}
 
-                    def make_obs(fid, t, state, _rid=rid, _sys=system_id, _cat=category, _pii=pii, _refs=user_refs, _attrs=attrs, _etime=entry_time):
-                        return _obs(fid, _etime, _sys, _rid, _cat, state, _pii, _refs, _attrs, f"json_service_export:{system_id}:{list_key}")
+                    def make_obs(fid, t, state, _rid=rid, _sys=system_id, _cat=category, _pii=pii, _refs=user_refs, _attrs=attrs, _etime=entry_time, _list_key=list_key):
+                        return _obs(fid, _etime, _sys, _rid, _cat, state, _pii, _refs, _attrs, f"json_service_export:{_sys}:{_list_key}")
 
                     rows[rid] = {"_make_obs": make_obs, "_present_state": present_state}
                 if rows:
@@ -325,7 +339,7 @@ def parse_log(file_id: str, path: Path, captured_at: str) -> None:
 
         system_id = taxonomy.system_for_resource(rid)
         pii = _pii(email=fields.get("email") or fields.get("customer_email"), email_hash=fields.get("email_hash"))
-        user_refs = [fields.get("customer_reference") or fields.get("correlation_key")]
+        user_refs = [fields.get("customer_reference") or fields.get("correlation_key") or fields.get("lookup_key")]
         observed_at = fields.get("timestamp") or captured_at
         obs = _obs(file_id, observed_at, system_id, rid, category, state, pii, user_refs, {"event": event}, "log:kv")
         _append_direct(file_id, obs)
