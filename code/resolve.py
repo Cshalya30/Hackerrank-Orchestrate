@@ -92,7 +92,15 @@ def matches_identity(obs: dict, idset: dict) -> bool:
     if pii.get("phone") and pii["phone"] in idset["phones"]:
         return True
     for ref in obs.get("user_refs") or []:
+        # a generic log correlation_key/lookup_key can hold either a user_id
+        # or an email_hash (case_12: analytics_9914 is matched only by the
+        # user's OLD, pre-change email_hash sitting in correlation_key) —
+        # check both, plus email-shaped refs against the email set.
         if ref == idset["user_id"]:
+            return True
+        if ref in idset["hashes"]:
+            return True
+        if ref and "@" in ref and _norm(ref) in idset["emails"]:
             return True
     return False
 

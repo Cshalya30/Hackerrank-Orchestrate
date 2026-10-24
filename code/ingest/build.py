@@ -307,6 +307,17 @@ def _append_direct(file_id: str, obs: dict) -> None:
     _DIRECT_OBS.append(obs)
 
 
+CATEGORY_LOG_ACTIVE_STATE = {
+    "DATA_FLOW": "FLOW_ENABLED",
+    "BACKUP_ARCHIVE": "RESTORE_ALLOWED",
+    "ANALYTICS_PROFILE": "IDENTIFIABLE",
+    "PRODUCT_TELEMETRY": "IDENTIFIABLE",
+    "SUPPORT_MESSAGE": "IDENTIFIABLE",
+    "EMAIL_DELIVERY_LOG": "IDENTIFIABLE",
+    "ACCOUNT_TOMBSTONE": "IDENTIFIABLE",
+}
+
+
 def parse_log(file_id: str, path: Path, captured_at: str) -> None:
     text = path.read_text(encoding="utf-8", errors="replace")
     for line in text.splitlines():
@@ -332,10 +343,20 @@ def parse_log(file_id: str, path: Path, captured_at: str) -> None:
             category = "CACHE_ENTRY"
         elif "delivery" in event or "email" in event:
             category = "EMAIL_DELIVERY_LOG"
-        elif "marketing" in event or "audience" in event:
+        elif "marketing" in event or "audience" in event or "contact" in event:
+            # B3: analytics_platform contact-lookup records are marketing
+            # contacts (REMAINING_RECORD -> DELETE), not an analytics
+            # profile to anonymize (case_12 analytics_9914).
             category = "MARKETING_PROFILE"
         elif "telemetry" in event:
             category = "PRODUCT_TELEMETRY"
+
+        # A log line proving a resource was actively read/queried is itself
+        # proof of its "needs remediation" state for categories with a
+        # binary state model — these sources never carry an explicit
+        # enabled/identifiable flag the way a SQL/JSON snapshot row does.
+        if state == "PRESENT":
+            state = CATEGORY_LOG_ACTIVE_STATE.get(category, state)
 
         system_id = taxonomy.system_for_resource(rid)
         pii = _pii(email=fields.get("email") or fields.get("customer_email"), email_hash=fields.get("email_hash"))
@@ -418,8 +439,8 @@ def parse_activity() -> None:
 
             if not RESOURCE_ID_RE.match(rid) or result != "SUCCESS":
                 continue
-            state = ACTIVITY_STATE.get(event_type, "PRESENT")
             category = ACTIVITY_CATEGORY.get(event_type, taxonomy.category_for_resource(rid))
+            state = ACTIVITY_STATE.get(event_type, CATEGORY_LOG_ACTIVE_STATE.get(category, "PRESENT"))
             obs = _obs(activity_id, event_time, row.get("target_system") or taxonomy.system_for_resource(rid), rid,
                         category, state, _pii(), [], {"event_type": event_type}, f"activity:{activity_id}", claim=True)
             _append_direct(None, obs)
