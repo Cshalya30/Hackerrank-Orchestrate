@@ -56,23 +56,25 @@ def call(prompt: str, *, system: str | None = None, image_bytes: bytes | None = 
         _append_ledger({"model": model, "cached": True, "input_tokens": 0, "output_tokens": 0, "key": key})
         return data["text"]
 
-    import google.generativeai as genai  # local import: optional dependency
+    from google import genai  # local import: optional dependency
+    from google.genai import types
 
-    genai.configure(api_key=GEMINI_API_KEY)
-    gm = genai.GenerativeModel(model_name=model, system_instruction=system or None)
+    client = genai.Client(api_key=GEMINI_API_KEY)
 
-    parts: list[Any] = [prompt]
+    contents: list[Any] = [prompt]
     if image_bytes is not None:
-        parts.append({"mime_type": "image/png", "data": image_bytes})
+        contents.append(types.Part.from_bytes(data=image_bytes, mime_type="image/png"))
+
+    cfg = types.GenerateContentConfig(system_instruction=system or None) if system else None
 
     last_err: Exception | None = None
     for attempt in range(max_retries):
         try:
-            resp = gm.generate_content(parts)
+            resp = client.models.generate_content(model=model, contents=contents, config=cfg)
             text = resp.text
             usage = getattr(resp, "usage_metadata", None)
             input_tokens = getattr(usage, "prompt_token_count", 0) if usage else 0
-            output_tokens = getattr(usage, "candidates_token_count", 0) if usage else 0
+            output_tokens = (getattr(usage, "candidates_token_count", 0) or 0) + (getattr(usage, "thoughts_token_count", 0) or 0)
             cached.write_text(json.dumps({"text": text}, ensure_ascii=False), encoding="utf-8")
             _append_ledger({
                 "model": model, "cached": False,

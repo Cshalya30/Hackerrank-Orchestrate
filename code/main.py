@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import SAMPLE_REQUESTS_CSV, DELETION_REQUESTS_CSV, OUTPUT_CSV  # noqa: E402
 import intent  # noqa: E402
+import llm  # noqa: E402
 import planner  # noqa: E402
 from resolve import IdentityIndex, load_observations, candidate_observations, latest_state_per_resource, resource_link_overlay  # noqa: E402
 from account_linker import AccountLinker  # noqa: E402
@@ -34,6 +35,18 @@ def run(requests_path: Path, out_path: Path) -> list[dict]:
     with open(requests_path, newline="", encoding="utf-8") as f:
         requests = list(csv.DictReader(f))
 
+    llm_labels = None
+    if llm.is_configured():
+        distinct_texts = sorted({r["request_text"] for r in requests})
+        llm_labels = intent.classify_all_llm(distinct_texts)
+        changed = [
+            t for t in distinct_texts
+            if llm_labels[t][0] != intent.classify_text(t)[0]
+        ]
+        print(f"LLM intent: classified {len(distinct_texts)} distinct texts, {len(changed)} differ from the keyword fallback", file=sys.stderr)
+        for t in changed[:20]:
+            print(f"  LLM={llm_labels[t][0]} keyword={intent.classify_text(t)[0]}: {t[:100]!r}", file=sys.stderr)
+
     for req in requests:
         case_id = req["case_id"]
         email = req["email"]
@@ -49,7 +62,7 @@ def run(requests_path: Path, out_path: Path) -> list[dict]:
         candidate_resource_ids = {o["resource_id"] for o in candidates}
         account_override = bool(classify_overrides & candidate_resource_ids)
 
-        decision, _reason = intent.classify_case(request_text, account_override)
+        decision, _reason = intent.classify_case(request_text, account_override, llm_labels)
 
         if decision == "NON_DELETION":
             rows_out.append({"case_id": case_id, "deletion_status": "NOT_APPLICABLE", "steps_json": "[]"})

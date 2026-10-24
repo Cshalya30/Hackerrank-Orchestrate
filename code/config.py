@@ -35,7 +35,7 @@ OUTPUT_CSV = REPO_ROOT / "output.csv"
 
 # Runtime model for the few LLM-backed steps (intent classification, image
 # parsing, rare adjudication). See docs/SPEC.md section 5.
-GEMINI_MODEL = "gemini-2.0-flash"
+GEMINI_MODEL = "gemini-flash-latest"
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 EXPECTED_FULL_ROWS = 518
