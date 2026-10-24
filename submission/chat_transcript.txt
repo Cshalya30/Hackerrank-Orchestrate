@@ -834,3 +834,30 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+## [2026-10-25T12:30:00+05:30] Visualizer redesign: case-docket identity, two real bugs found
+
+Agent Response Summary:
+Owner rejected the first visualizer pass as generic AI-SaaS styling (purple gradient blobs, glassmorphism, emoji icons) and asked for real design craft with research. Loaded the artifact-design skill for its "avoid AI-generated design" guidance and UI/dashboard-specific principles (semantic color separate from accent, charts get the same care as type, interactive elements look interactive) even though this page isn't published via the Artifact tool -- the craft guidance applies regardless of host. Redesigned tools/viz/index.html around a grounded-in-subject identity: a forensic "case docket" (evidence exhibits, case stamps, a ledger) instead of a generic dashboard, since the underlying work (a deletion-audit system) literally is a forensic/compliance artifact. New palette: warm ink charcoal, parchment text, a single ochre case-stamp accent, semantic sage/rust/slate-blue kept separate from it. Typography: Fraunces (serif display, case-file register) + IBM Plex Mono (all data/ids, since this is fundamentally a data tool) + IBM Plex Sans (UI labels) -- deliberately not Inter/Space Grotesk. Replaced the glowing-particle edges with plain hairline connectors + arrowheads, replaced emoji icons with monospace stamp-style kind tags (DET/LLM/VAL/DATA), replaced the dashed dropdown status string with a proper legend + stacked bar, and gave the step timeline real sequence numbers (justified here since steps genuinely are an ordered sequence).
+
+Caught two real bugs while verifying with Playwright, not just styling: (1) main's CSS used a hardcoded `calc(100vh - 78px)` assuming a one-row header, but the header actually wraps to two rows (160px) at normal widths, pushing a third of the page off-screen below the fold -- fixed by switching body/header/main to a proper flex column layout instead of a magic-number height. (2) tools/viz/export_stats.py's `by_source` breakdown grouped observations by the full per-file `source` string (e.g. "json_snapshot:search_service:customer_search_documents"), producing 2996 near-unique buckets instead of ~10 real categories -- fixed by bucketing on the category prefix before the first ':'. Both would have been invisible without actually running the page and reading real data through it, not just eyeballing a static screenshot. Also added a case-stamp watermark and a real-fact scrolling ticker (status/F1/LLM-cost/evidence-source facts pulled from pipeline.json) to use the canvas's vertical space intentionally instead of leaving it empty, and tightened the auto-fit zoom so exhibit cards read at a legible size by default.
+
+Key decision and why: treated the user's "AI looking" complaint as a request for a load-bearing visual identity tied to the subject, not a request for more effects -- removed ambient glow/blur entirely rather than adding more of it, per the design skill's explicit warning that extra animation on top of a generic base reads as more AI-generated, not less.
+
+Files changed: tools/viz/index.html (full redesign), tools/viz/export_stats.py (by_source bucketing fix), tools/viz/pipeline.json (regenerated), submission/code.zip (rebuilt).
+
+Commands run: tools/viz/export_stats.py (regenerate); python -m http.server 8766 -d tools/viz (Playwright verification at 1440px/1024px, node click, case trace, by_source panel, console-error check -- 0 errors at 1024px); tools/make_zip.py (secret scan clean, 32 files).
+
+Actions:
+* Rewrote tools/viz/index.html with a case-docket visual identity (Fraunces/Plex Mono/Plex Sans, ochre accent, no glow/emoji/glassmorphism)
+* Fixed a real layout bug (hardcoded header-height assumption) and a real data bug (by_source over-granular bucketing)
+* Added a watermark and a real-data ticker to use the canvas's empty space intentionally
+* Rebuilt submission/code.zip
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none

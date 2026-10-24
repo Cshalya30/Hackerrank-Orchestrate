@@ -38,7 +38,9 @@ def _read_csv(path: Path) -> list[dict]:
 
 
 def build_nodes_edges(observations: list[dict], output_rows: list[dict], llm_entries: list[dict]) -> tuple[list[dict], list[dict]]:
-    by_source = Counter(o.get("source", "unknown") for o in observations)
+    # "source" is a fine-grained per-file tag (e.g. "json_snapshot:search_service:customer_search_documents");
+    # bucket by its coarse category prefix (before the first ':') for a readable breakdown.
+    by_source = Counter(o.get("source", "unknown").split(":", 1)[0] for o in observations)
     n_requests_full = len(_read_csv(DELETION_REQUESTS_CSV))
     n_requests_sample = len(_read_csv(SAMPLE_REQUESTS_CSV))
     status_counts = Counter(r["deletion_status"] for r in output_rows)
