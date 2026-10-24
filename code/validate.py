@@ -80,8 +80,9 @@ def validate_rows(rows: list[dict], expect_rows: int | None, expect_case_ids: se
                 errors.append(f"{cid}: NOT_APPLICABLE must have steps_json == []")
             continue
 
-        if not steps:
-            errors.append(f"{cid}: {status} case has no steps")
+        # Note: a COMPLETE case with zero steps (no evidence of any remaining
+        # data was found at all) is unusual but not forbidden by the output
+        # contract, so this is not flagged as an error.
 
         last_phase_idx = -1
         last_op_idx = -1

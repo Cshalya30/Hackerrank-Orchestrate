@@ -122,6 +122,8 @@ def parse_sql(file_id: str, path: Path, captured_at: str, tracker: FamilyTracker
             user_refs = [_clean(row.get("user_id") or row.get("customer_reference") or row.get("subject_reference"))]
             row_time = _clean(row.get("updated_at")) or captured_at
             attrs = {"table": table}
+            if row.get("source_resource_id"):
+                attrs["source_resource_id"] = row["source_resource_id"]
             present_state = None
             if "restore_allowed" in row:
                 present_state = "RESTORE_ALLOWED" if row.get("restore_allowed") else "RESTORE_BLOCKED"

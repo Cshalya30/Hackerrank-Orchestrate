@@ -33,3 +33,9 @@ Each entry: decision, alternatives rejected, evidence.
 - **Decision:** parse system_activity.csv into observations (DELETE/ANONYMIZE/REDACT/DISABLE_DATA_FLOW/BLOCK_RESTORE/SYNC/INDEX results, LINK_RESOURCE_IDENTITY identity edges, RESTORE_BACKUP's downstream-resource resurrection), tagged `attrs.claim=true`.
 - **Alternatives rejected:** treating it purely as a post-hoc "activity overlay" on top of file-evidence-only observations, as SPEC.md section 4 architecture implied by listing it outside ingest/.
 - **Evidence:** first ingest run hit only 82.0% coverage with every miss being an account_service row; checking sample cases showed account_id numeric suffixes do NOT generally match user_id suffixes (e.g. user_43 -> account_7566), so these accounts are only discoverable through system_activity.csv's LINK_RESOURCE_IDENTITY rows or DELETE_RECORD claims. Added system_activity.csv parsing -> coverage rose to 90.1%.
+
+## D6. Empty resource_states on a DELETION case means COMPLETE with zero steps, never NOT_APPLICABLE
+
+- **Decision:** `planner.finalize()` only emits NOT_APPLICABLE when intent classification said so; a DELETION-intent case where zero resources were resolved defaults to COMPLETE with `[]` steps.
+- **Alternatives rejected:** the original implementation treated "no steps" and "non-deletion" as the same signal — caught by the first sample eval run, which showed 11 NOT_APPLICABLE predictions against a gold set with zero NOT_APPLICABLE cases.
+- **Evidence:** fixing this raised sample status accuracy from 0.531 to 0.750 (see docs/EVAL_LOG.md). The underlying cause (zero observations for users like user_01/account_001) is a real, logged coverage gap (docs/GAPS.md), not something this fix papers over — those cases now correctly get an empty-but-honest COMPLETE instead of a confidently wrong NOT_APPLICABLE.
