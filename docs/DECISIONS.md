@@ -39,3 +39,9 @@ Each entry: decision, alternatives rejected, evidence.
 - **Decision:** `planner.finalize()` only emits NOT_APPLICABLE when intent classification said so; a DELETION-intent case where zero resources were resolved defaults to COMPLETE with `[]` steps.
 - **Alternatives rejected:** the original implementation treated "no steps" and "non-deletion" as the same signal — caught by the first sample eval run, which showed 11 NOT_APPLICABLE predictions against a gold set with zero NOT_APPLICABLE cases.
 - **Evidence:** fixing this raised sample status accuracy from 0.531 to 0.750 (see docs/EVAL_LOG.md). The underlying cause (zero observations for users like user_01/account_001) is a real, logged coverage gap (docs/GAPS.md), not something this fix papers over — those cases now correctly get an empty-but-honest COMPLETE instead of a confidently wrong NOT_APPLICABLE.
+
+## D7. Reverted: excluding "decoy" prefixes (object_storage) from LINK_RESOURCE_IDENTITY
+
+- **Attempted:** skip activity-claim-only links to resources outside the 15 deletion_rules.csv categories (object_storage, etc.), since README.md explicitly warns global data contains decoys, and case_07's object_19 (linked only by one LINK_RESOURCE_IDENTITY claim) was a confirmed false positive.
+- **Reverted:** fixed case_07's false positive but flipped 0 cases toward correct and relied on a different coincidence elsewhere; net effect was status accuracy 0.812 -> 0.781 with F1 unchanged (0.694 -> 0.694). Per the owner's rule (keep only if F1 improves), reverted.
+- **Evidence:** docs/EVAL_LOG.md run comparison. Worth revisiting once PDF/image parsing closes the support_001/evidence_58 gap that was masking the real fix.

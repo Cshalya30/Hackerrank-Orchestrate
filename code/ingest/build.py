@@ -446,6 +446,45 @@ def parse_activity() -> None:
             _append_direct(None, obs)
 
 
+def parse_pdf(file_id: str, path: Path, captured_at: str) -> None:
+    """B5: wire the 4 PDFs. Each uses a distinct template, so this is
+    targeted extraction (regex over pypdf's text), not a generic parser —
+    there are only 4 files, and docs/GAPS.md item 8 already confirmed
+    pypdf extracts them cleanly."""
+    try:
+        from pypdf import PdfReader
+    except ImportError:
+        return
+    try:
+        reader = PdfReader(str(path))
+        text = "\n".join((p.extract_text() or "") for p in reader.pages)
+    except Exception:  # noqa: BLE001
+        return
+
+    # delivery_correction_attachment.pdf: a support attachment uploaded by
+    # the customer themselves -> SUPPORT_ATTACHMENT, owned only by subject
+    # (evidence_58 proves case_07's support_001).
+    m = re.search(r"reference\s+\S+\s*/\s*(support_\d+)", text)
+    if m:
+        rid = m.group(1)
+        email_m = re.search(r"[\w.+-]+@[\w.-]+", text)
+        is_customer_upload = "uploader customer" in text.lower()
+        pii = _pii(email=email_m.group(0) if email_m else None)
+        category = "SUPPORT_ATTACHMENT" if is_customer_upload else "SUPPORT_MESSAGE"
+        obs = _obs(file_id, captured_at, "support_platform", rid, category, "PRESENT", pii, [], {}, "pdf:support_attachment")
+        _append_direct(file_id, obs)
+
+    # security_retention_extract.pdf: a signed compliance-journal extract
+    # naming one audit_record_* and its subject_reference directly.
+    m = re.search(r"Event reference\s+(audit_record_\d+)", text)
+    if m:
+        rid = m.group(1)
+        subj_m = re.search(r"subject reference\s+(user_\d+)", text)
+        obs = _obs(file_id, captured_at, "security_service", rid, "SECURITY_AUDIT_LOG", "RETAINED",
+                    _pii(), [subj_m.group(1)] if subj_m else [], {}, "pdf:compliance_journal")
+        _append_direct(file_id, obs)
+
+
 def main() -> int:
     with open(EVIDENCE_FILES_CSV, newline="", encoding="utf-8") as f:
         manifest = list(csv.DictReader(f))
@@ -467,7 +506,7 @@ def main() -> int:
         elif ext == ".txt":
             parse_pipe_text(file_id, path, captured_at)
         elif ext == ".pdf":
-            skipped["pdf"] += 1
+            parse_pdf(file_id, path, captured_at)
         elif ext == ".png":
             skipped["png"] += 1
 

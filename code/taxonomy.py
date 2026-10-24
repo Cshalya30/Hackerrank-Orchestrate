@@ -109,6 +109,10 @@ def category_for_resource(resource_id: str, fallback: str = "USER_PROFILE") -> s
     return fallback
 
 
+def has_known_prefix(resource_id: str) -> bool:
+    return any(resource_id.startswith(prefix + "_") for prefix in PREFIX_TO_CATEGORY)
+
+
 def system_for_resource(resource_id: str, fallback: str | None = None) -> str:
     for prefix, system in PREFIX_TO_SYSTEM.items():
         if resource_id.startswith(prefix + "_"):
