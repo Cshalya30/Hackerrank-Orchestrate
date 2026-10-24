@@ -189,18 +189,21 @@ log's correlation_key field.
 
 ## 90-second visualizer demo script
 
-1. "This is the same pipeline from the README, but interactive." Open
-   `tools/viz/index.html` (`python -m http.server 8765 -d tools/viz`).
-2. Point at the header strip: "These are the real numbers from my last
-   validated run — status accuracy, step F1, sequence accuracy, the status
+1. "This is the same pipeline from the README, but as an operations
+   console." Open `tools/viz/index.html` (`python -m http.server 8765 -d
+   tools/viz`).
+2. Point at the KPI row: "These are the real numbers from my last validated
+   run — status accuracy, step F1, sequence accuracy, the status
    distribution across all 518 cases, and total LLM cost."
-3. Click the Intent node: "This is the only LLM call in the whole system —
-   here's what it's for, and its exact token/cost usage."
+3. Click the Intent stage in the pipeline stepper: "This is the only LLM
+   call in the whole system — here's what it's for, and its exact
+   token/cost usage."
 4. Click through Evidence Ingest -> Point-in-time State -> Policy -> Planner:
    "Everything after intent is deterministic Python — same input, same
    output, every time."
-5. Open the case dropdown, pick a case: "Here's one case end to end — which
-   user it resolved to, which rule found their account, every resource with
-   its state and evidence citation, and the final step timeline."
+5. Search or filter the case table, click a row: "Here's one case end to
+   end — which user it resolved to, which rule found their account, every
+   resource with its state and evidence citation, and the final step
+   timeline in the drawer."
 6. Close with: "Every one of these came from a real file in `build/`, there's
    nothing hand-written in this view."

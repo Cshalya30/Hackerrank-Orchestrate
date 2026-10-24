@@ -96,11 +96,12 @@ python -m http.server 8765 -d tools/viz
 # open http://localhost:8765
 ```
 
-A single self-contained page (no build step, no external requests): a
-left-to-right flow diagram of the 9 pipeline stages (click a node for its
-file/function, counts, and — for the intent node — LLM usage), and a
-searchable case explorer that renders any case's resolved identity, account
-rule, resources, and step timeline. Regenerate `tools/viz/pipeline.json`
+A single self-contained page (no build step, Google Fonts aside): a KPI row
+(status/step/sequence accuracy, LLM cost), a status-distribution bar, a
+9-stage pipeline stepper (click a stage for its file/function, counts, and
+— for the intent stage — LLM usage), and a searchable, filterable, paginated
+table of all 518 cases that opens a detail drawer (identity, account rule,
+resources, step timeline) on click. Regenerate `tools/viz/pipeline.json`
 after any pipeline change with:
 
 ```bash
