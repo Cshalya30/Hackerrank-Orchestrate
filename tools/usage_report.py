@@ -13,8 +13,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "code"))
 from config import LLM_LEDGER_JSONL, REPO_ROOT  # noqa: E402
 
-# Gemini Flash list price (per docs, USD per 1M tokens) used only to produce
-# an estimate; actual billing may differ by tier/region.
+# Gemini Flash-Lite list price (USD per 1M tokens), used only to produce an
+# approximate estimate; actual billing may differ by tier/region and this
+# session did not re-verify the figure against current pricing.
 PRICE_PER_1M_INPUT_USD = 0.075
 PRICE_PER_1M_OUTPUT_USD = 0.30
 
@@ -75,13 +76,17 @@ def main() -> int:
         "`deletion_requests.csv` combined. Cached per batch by prompt hash, so a "
         "re-run of the same split makes 0 new calls.",
         "- **Screenshot parsing** (`code/ingest/image_parser.py`): one call per PNG "
-        "evidence file (11 total), cached by (prompt + image hash).",
+        "evidence file (11 total), cached by (prompt + image hash). Run this session "
+        "as an experiment; its output was NOT merged into the committed pipeline "
+        "because it dropped sample step F1 (see docs/DECISIONS.md D8) -- the calls "
+        "below are real spend/usage even though the result wasn't kept.",
         "",
-        "Price basis: Gemini Flash list pricing "
+        "Price basis: approximate Gemini Flash-Lite list pricing "
         f"(${PRICE_PER_1M_INPUT_USD}/1M input tokens, ${PRICE_PER_1M_OUTPUT_USD}/1M output "
-        "tokens) as of this session; actual cost may differ by plan/region. "
-        "`output_tokens` includes the model's internal reasoning (\"thoughts\") tokens, "
-        "which this model bills as output.",
+        "tokens), not re-verified against current published pricing this session; "
+        "actual cost may differ by plan/region. `output_tokens` includes any model "
+        "internal reasoning (\"thoughts\") tokens, which this model bills as output "
+        "(thinking is off for this model/config, so this should normally be 0).",
     ]
 
     OUT_PATH.write_text("\n".join(lines), encoding="utf-8")

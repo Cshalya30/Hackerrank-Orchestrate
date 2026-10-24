@@ -21,7 +21,8 @@ def case_1_not_applicable():
     even though it mentions removing something (a common export's details)."""
     text = "Please export my order history and email it to me, but leave my account and profile exactly as they are."
     decision, _ = intent.classify_case(text, classify_request_override=False)
-    assert decision == "NON_DELETION", f"expected NON_DELETION, got {decision}"
+    assert decision == "OTHER_SERVICE", f"expected OTHER_SERVICE, got {decision}"
+    assert decision not in intent.DELETION_LABELS
     print("PASS case_1_not_applicable:", decision)
 
 

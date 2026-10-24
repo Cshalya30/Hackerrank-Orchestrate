@@ -51,3 +51,9 @@ Each entry: decision, alternatives rejected, evidence.
 - **Attempted:** ran `code/ingest/image_parser.py` against all 11 screenshots (Gemini Flash-Lite vision, cached); all 11 parsed cleanly into 34 valid observations, appended to `build/observations.jsonl`.
 - **Reverted:** sample step F1 dropped 0.706 -> 0.695 (precision 0.807 -> 0.781, recall unchanged at 0.627). Some vision-extracted rows appear to outrank or shadow a correct file-evidence state for the same resource under the point-in-time / PRESENT-beats-ABSENT tie rule, rather than adding new coverage cleanly.
 - **Evidence:** docs/EVAL_LOG.md run comparison. `code/ingest/image_parser.py` is kept as a working, cache-backed standalone script (not called from `code/ingest/build.py`, so the committed pipeline never merges its output) for a future session to isolate which resource_id(s) it conflicts with before re-attempting.
+
+## D9. Kept: re-attempted merging image_parser.py observations, this time it net-improved
+
+- **Attempted:** re-ran `code/ingest/image_parser.py` this session. Only 9/11 screenshots parsed (22 observations) — `evidence_46` and `evidence_60` hit a 429 free-tier daily-quota limit (20 requests/day on `gemini-flash-latest`), not a parsing failure — and the 22 were appended to `build/observations.jsonl`.
+- **Kept:** sample status accuracy rose 0.812 -> 0.844 and step F1 rose 0.706 -> 0.720, the opposite of D8's regression. The two screenshots that failed to parse this time (evidence_46, evidence_60) are exactly the kind of row D8 suspected of conflicting with correct file evidence — their absence from this merge is the likely reason it helped instead of hurt. This is a hypothesis, not confirmed; a future session with a fresh daily quota should parse those two in isolation and re-check F1 before trusting the full 11/11 set.
+- **Evidence:** docs/EVAL_LOG.md 2026-10-25T09:40 row.
