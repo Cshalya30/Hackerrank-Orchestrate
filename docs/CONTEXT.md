@@ -26,7 +26,7 @@ Last updated: 2026-10-24T20:40+05:30, by Claude Code (Sonnet 5), autonomous sess
 - [x] Repo cloned, AGENTS.md / README.md / problem_statement.md read in full
 - [x] docs/SPEC.md (verbatim + README-deviation note), docs/GAPS.md, docs/DECISIONS.md, docs/EVAL_LOG.md created
 - [x] Card 0: code/config.py, code/llm.py (cache+ledger+retries), .env.example, .gitignore, requirements.txt, venv created, deps installed
-- [ ] Card 1: code/evaluation/main.py (eval) + code/validate.py
+- [x] Card 1: code/evaluation/main.py (eval) + code/validate.py — proved 100% on sample_output vs itself
 - [ ] Card 2: tools/profile_evidence.py -> build/evidence_profile.txt
 - [ ] Card 3: ingest parsers -> build/observations.jsonl + build/coverage.txt
 - [ ] Card 4: identity.py, state.py, policy.py, planner.py -> sample run -> eval
@@ -35,7 +35,7 @@ Last updated: 2026-10-24T20:40+05:30, by Claude Code (Sonnet 5), autonomous sess
 - [ ] Card 7: eval-driven fixes, custom cases, evaluation_report
 
 ## Current eval scores
-Not yet run.
+sample_output vs itself: status_accuracy=1.000, sequence_accuracy=1.000, step_F1=1.000, all field accuracies=1.000 (self-check only; real pipeline not run yet).
 
 ## Blocked
 Nothing yet.
