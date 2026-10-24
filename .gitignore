@@ -6,3 +6,5 @@ __pycache__/
 build/
 output.csv
 *.zip
+!submission/code.zip
+!submission/output.csv
