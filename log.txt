@@ -919,3 +919,23 @@ branch=main
 repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
 worktree=main
 parent_agent=none
+
+Key decision and why: generated two bonus PDF reference docs (not required HackerRank deliverables) via reportlab scripts rather than hand-written markdown-to-PDF, so both regenerate deterministically from the same source-of-truth files (DECISIONS.md, EVAL_LOG.md, evaluation_report.md, usage_report.md, INTERVIEW_PREP.md) if numbers change before submission.
+
+Files changed: tools/generate_report.py (new), tools/generate_script.py (new), submission/PROJECT_REPORT.pdf (new, 15 pages), submission/PRESENTATION_SCRIPT.pdf (new, 5 pages).
+
+Commands run: .venv/Scripts/python.exe tools/generate_report.py; .venv/Scripts/python.exe tools/generate_script.py; pypdf text-extraction check on PROJECT_REPORT.pdf (15/15 pages clean); pymupdf page-render spot checks on both PDFs (cover, decisions table, incidents, pitch, failure stories -- no overflow or layout defects).
+
+Actions:
+* Wrote tools/generate_report.py: full session writeup (architecture, D1-D10, eval history, failures/fixes, LLM cost, both incidents, visualizer design journey, submission package, 65-commit timeline)
+* Wrote tools/generate_script.py: timed rehearsal script for the live demo (60s pitch, visualizer walkthrough, 3 failure stories, 6 hard Q&A)
+* Verified both PDFs via text extraction and rendered-image spot checks before committing
+* Committed 68768e7; moved v1-final tag to current HEAD and pushed both to github remote
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5
+branch=main
+repo_root=D:\Users\Chirantan\Documents\Competitions - 5th Sem\Hackerrank orchestrate\project
+worktree=main
+parent_agent=none
